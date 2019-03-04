@@ -1,0 +1,10 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    compile "io.netifi.proteus:proteus-spring-boot-starter"
+    compile 'io.r2dbc:r2dbc-postgresql-netifi'
+
+    testCompile 'org.junit.vintage:junit-vintage-engine:5.3.1'
+}

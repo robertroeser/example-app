@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jmeter-driver
+  labels:
+    app: jmeter-driver
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jmeter-driver
+  template:
+    metadata:
+      labels:
+        app: jmeter-driver
+    spec:
+      containers:
+        - name: jmeter-driver
+          image: netifi.azurecr.io/proteus-acmeair-jmeter-driver:1.0.52-SNAPSHOT
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: "2048Mi"
+            requests:
+              memory: "1024Mi"
+          ports:
+            - name: rmi
+              containerPort: 1099
+      imagePullSecrets:
+        - name: netifi-private
+      nodeSelector:
+        workload: general
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jmeter-driver
+  name: jmeter-driver
+spec:
+  clusterIP: None
+  selector:
+    app: jmeter-driver
+  ports:
+    - name: rmi
+      port: 1099
+      targetPort: rmi
+      protocol: TCP

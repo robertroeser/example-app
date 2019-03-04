@@ -1,0 +1,123 @@
+buildscript {
+    ext {
+        springBootVersion = '2.1.0.RELEASE'
+    }
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven { url "https://repo.spring.io/snapshot" }
+        maven { url "https://repo.spring.io/milestone" }
+    }
+
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+
+subprojects {
+    apply plugin: 'idea'
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+    
+    group 'proteus.acmeair'
+    version '1.5.3.BUILD-SNAPSHOT'
+
+    ext['protobuf.version'] = '3.6.1'
+    ext['rsocket.version'] = '0.11.15'
+    ext['rsocket-rpc.version'] = '0.2.12'
+    ext['proteus.version'] = '1.5.4'
+    ext['proteus.spring.version'] = '1.5.3'
+    ext['reactorPoolVersion'] = '0.0.2-SNAPSHOT'
+
+    dependencyManagement {
+        dependencies {
+
+            dependency group: 'io.r2dbc', name: 'r2dbc-postgresql-netifi', version: '1.0.0.BUILD-SNAPSHOT'
+            dependency group: 'io.r2dbc', name: 'r2dbc-client', version: '1.0.0.BUILD-SNAPSHOT'
+            dependency "com.netifi.reactor.pool:reactor-pool-r2dbc:$reactorPoolVersion"
+            
+            dependencySet(group: 'io.netifi.proteus', version: ext['proteus.version']) {
+                entry 'proteus-auth'
+                entry 'proteus-client'
+                entry 'proteus-frames'
+                entry 'proteus-metrics-micrometer'
+            }
+            dependencySet(group: 'com.google.protobuf', version: ext['protobuf.version']) {
+                entry 'protoc'
+                entry 'protobuf-java'
+                entry 'protobuf-java-util'
+            }
+            dependencySet(group: 'io.rsocket', version: ext['rsocket.version']) {
+                entry 'rsocket-core'
+                entry 'rsocket-transport-netty'
+                entry 'rsocket-transport-local'
+            }
+            dependencySet(group: 'io.rsocket.rpc', version: ext['rsocket-rpc.version']) {
+                entry 'rsocket-rpc-core'
+                entry 'rsocket-rpc-metrics-idl'
+                entry 'rsocket-rpc-protobuf'
+                entry 'rsocket-rpc-protobuf-idl'
+            }
+            dependency "io.netifi.proteus:proteus-spring-boot-starter:${ext['proteus.spring.version']}"
+        }
+    }
+
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven {
+            url 'http://repo.spring.io/libs-snapshot'
+        }
+        maven {
+            url "https://dl.bintray.com/netifi/netifi-oss"
+        }
+        maven {
+            url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
+            credentials {
+                username = project.hasProperty('netifiArtifactoryUsername') ? project.property('netifiArtifactoryUsername') : System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                password = project.hasProperty('netifiArtifactoryPassword') ? project.property('netifiArtifactoryPassword') : System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+            }
+
+        }
+        maven {
+            url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
+            credentials {
+                username = project.hasProperty('netifiArtifactoryUsername') ? project.property('netifiArtifactoryUsername') : System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                password = project.hasProperty('netifiArtifactoryPassword') ? project.property('netifiArtifactoryPassword') : System.getenv('NETIFI_ARTIFACTORY_PASSWORD') 
+            }
+
+        }
+    }
+
+    sourceCompatibility = 1.8
+
+    plugins.withType(ApplicationPlugin) {
+        applicationDefaultJvmArgs = [
+                '-XshowSettings:vm',
+                '-XX:+UseG1GC',
+                '-XX:MaxGCPauseMillis=200',
+                '-XX:+AlwaysPreTouch',
+                '-XX:+UseStringDeduplication',
+                '-XX:+ExplicitGCInvokesConcurrent',
+                '-XX:+ParallelRefProcEnabled',
+                '-XX:InitialRAMPercentage=10',
+                '-XX:MinRAMPercentage=10',
+                '-XX:MaxRAMPercentage=70',
+                '-XX:+UnlockExperimentalVMOptions',
+                '-XX:+UseCGroupMemoryLimitForHeap',
+                '-XX:MaxDirectMemorySize=256M',
+                '-XX:+IgnoreUnrecognizedVMOptions',
+                '-Xlog:gc:gc.log::filecount=10,filesize=100M',
+                '-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector'
+        ]
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        dependencySubstitution {
+            substitute module('com.google.guava:guava') with module('com.google.guava:guava:22.0')
+        }
+    }
+}

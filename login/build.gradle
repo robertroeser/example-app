@@ -1,0 +1,29 @@
+plugins {
+    id 'application'
+    id 'org.springframework.boot'
+}
+
+mainClassName = 'proteus.acmeair.LoginMain'
+
+dependencies {
+    compile project(':login-idl')
+    compile project(':customer-idl')
+    compile project(':common')
+
+    compile "io.netifi.proteus:proteus-spring-boot-starter"
+    compile "io.netifi.proteus:proteus-metrics-micrometer"
+    compile "io.netifi.proteus:proteus-auth"
+    compile "com.netifi.reactor.pool:reactor-pool-r2dbc"
+    
+    testCompile 'org.junit.vintage:junit-vintage-engine:5.3.1'
+}
+
+configurations.all {
+    resolutionStrategy {
+        dependencySubstitution {
+            substitute module('com.google.guava:guava') with module('com.google.guava:guava:22.0')
+        }
+    }
+}
+
+apply from:'../gradle/docker.gradle'

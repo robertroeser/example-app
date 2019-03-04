@@ -1,0 +1,50 @@
+plugins {
+    id 'application'
+    id 'org.springframework.boot'
+}
+
+run { 
+    systemProperties = System.properties
+}
+
+mainClassName = 'proteus.acmeair.ClientMain'
+
+applicationDefaultJvmArgs = [
+        '-XX:+IgnoreUnrecognizedVMOptions',
+        '-XshowSettings:vm',
+        '-XX:+UseG1GC',
+        '-XX:MaxGCPauseMillis=200',
+        '-XX:+AlwaysPreTouch',
+        '-XX:+UseStringDeduplication',
+        '-XX:+ExplicitGCInvokesConcurrent',
+        '-XX:+ParallelRefProcEnabled',
+        '-XX:+UnlockExperimentalVMOptions',
+        '-XX:+UseCGroupMemoryLimitForHeap',
+        '-XX:InitialRAMPercentage=70',
+        '-XX:MaxRAMPercentage=70',
+        '-Xlog:gc:gc.log::filecount=10,filesize=100M',
+        '-Duser.timezone=America/Los_Angeles',
+        '-Dspring.config.name=application-prod'
+]
+
+
+dependencies {
+    compile project(':booking-idl')
+    compile project(':customer-idl')
+    compile project(':login-idl')
+    compile project(':flight-idl')
+
+    compile "org.springframework.boot:spring-boot-starter"
+    compile "io.netifi.proteus:proteus-metrics-micrometer"
+    compile "com.netifi.reactor.pool:reactor-pool-r2dbc"
+    
+    testCompile 'org.junit.vintage:junit-vintage-engine:5.3.1'
+}
+
+configurations.all {
+    resolutionStrategy {
+        dependencySubstitution {
+            substitute module('com.google.guava:guava') with module('com.google.guava:guava:22.0')
+        }
+    }
+}

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package proteus.acmeair.contract;
+
+import "google/protobuf/empty.proto";
+
+option java_outer_classname = "FlightLoaderProto";
+option java_multiple_files = true;
+
+message LoadFlightsResponse {
+    int64 durationMillis = 1;
+}
+
+message DropFlightsResponse {
+    int64 durationMillis = 1;
+}
+
+message LoadFlightsRequest {
+    string resource = 1;
+}
+
+service FlightLoaderService {
+    rpc LoadFlights (LoadFlightsRequest) returns (LoadFlightsResponse) {}
+
+    rpc LoadDefaultFlights (google.protobuf.Empty) returns (LoadFlightsResponse) {}
+
+    rpc DropFlights (google.protobuf.Empty) returns (DropFlightsResponse) {}
+}

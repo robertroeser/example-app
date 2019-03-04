@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acmeair-flight
+  labels:
+    app: acmeair-flight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: acmeair-flight
+  template:
+    metadata:
+      labels:
+        app: acmeair-flight
+    spec:
+      containers:
+        - name: acmeair-flight
+          image: netifi.azurecr.io/proteus-acmeair-flight:1.5.3.BUILD-SNAPSHOT
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "4"
+              memory: "2Gi"
+            requests:
+              memory: "2Gi"
+              cpu: "1500m"
+          env:
+            - name: PROTEUS_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: FLIGHT_OPTS
+              value: "$(FLIGHT_OPTS) '-Dspring.config.name=application-prod' \
+                                     '-Dnetifi.proteus.postgres.host=35.224.68.224' \
+                                     '-Dnetifi.proteus.postgres.database=acmeairdb' \
+                                     '-Dnetifi.proteus.postgres.username=postgres' \
+                                     '-Dnetifi.proteus.postgres.password=acmeairdb' \
+                                     '-Dnetifi.proteus.postgres.poolSize=40' \
+                                     '-Dnetifi.proteus.broker.hostname=$(PROTEUS_HOSTNAME)' \
+                                     '-Dnetifi.proteus.broker.port=8001' \
+                                     '-Duser.timezone=America/Los_Angeles' \
+                                     '-XX:+UnlockDiagnosticVMOptions' \
+                                     '-XX:+DebugNonSafepoints' \
+                                     '-XX:+UnlockCommercialFeatures' \
+                                     '-XX:+FlightRecorder' \
+                                     '-XX:GuaranteedSafepointInterval=300000' \
+                                     '-Dnetifi.proteus.acme.cacheflights=true'"
+      imagePullSecrets:
+        - name: netifi-private

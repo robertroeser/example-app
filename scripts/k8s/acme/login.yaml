@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acmeair-login
+  labels:
+    app: acmeair-login
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: acmeair-login
+  template:
+    metadata:
+      labels:
+        app: acmeair-login
+    spec:
+      containers:
+        - name: acmeair-login
+          image: netifi.azurecr.io/proteus-acmeair-login:1.5.3.BUILD-SNAPSHOT
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+            requests:
+              memory: "2Gi"
+              cpu: "1500m"
+          env:
+            - name: PROTEUS_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: LOGIN_OPTS
+              value: "$(LOGIN_OPTS) '-Dspring.config.name=application-prod' \
+                                    '-Dnetifi.proteus.postgres.host=35.224.68.224' \
+                                    '-Dnetifi.proteus.postgres.database=acmeairdb' \
+                                    '-Dnetifi.proteus.postgres.username=postgres' \
+                                    '-Dnetifi.proteus.postgres.password=acmeairdb' \
+                                    '-Dnetifi.proteus.postgres.poolSize=40' \
+                                    '-Dnetifi.proteus.broker.hostname=$(PROTEUS_HOSTNAME)' \
+                                    '-Dnetifi.proteus.broker.port=8001'"
+      imagePullSecrets:
+        - name: netifi-private

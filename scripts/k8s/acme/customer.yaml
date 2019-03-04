@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acmeair-customer
+  labels:
+    app: acmeair-customer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: acmeair-customer
+  template:
+    metadata:
+      labels:
+        app: acmeair-customer
+    spec:
+      containers:
+        - name: acmeair-customer
+          image: netifi.azurecr.io/proteus-acmeair-customer:1.5.3.BUILD-SNAPSHOT
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              memory: "2Gi"
+              cpu: "1500m"
+          env:
+            - name: PROTEUS_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: CUSTOMER_OPTS
+              value: "$(CUSTOMER_OPTS) '-Dspring.config.name=application-prod' \
+                                       '-Dnetifi.proteus.postgres.host=35.224.68.224' \
+                                       '-Dnetifi.proteus.postgres.database=acmeairdb' \
+                                       '-Dnetifi.proteus.postgres.username=postgres' \
+                                       '-Dnetifi.proteus.postgres.password=acmeairdb' \
+                                       '-Dnetifi.proteus.postgres.poolSize=40' \
+                                       '-Dnetifi.proteus.broker.hostname=$(PROTEUS_HOSTNAME)' \
+                                       '-Dnetifi.proteus.broker.port=8001'"
+      imagePullSecrets:
+        - name: netifi-private
